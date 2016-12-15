@@ -5,14 +5,19 @@ module Dry
     class Settings
       SettingValueError = Class.new(StandardError)
 
+      # @return [{Symbol => Dry::Types::Definition}]
       def self.schema
         @schema ||= {}
       end
 
+      # @param [Symbol] name
+      # @param [Dry::Types::Definition] type
       def self.setting(name, type = nil)
         settings(name => type)
       end
 
+      # @param [{Symbol => Dry::Types::Definition}] new_schema
+      # @return [self]
       def self.settings(new_schema)
         check_schema_duplication(new_schema)
         @schema = schema.merge(new_schema)
@@ -20,6 +25,8 @@ module Dry
         self
       end
 
+      # @param [{Symbol => Dry::Types::Definition}] new_schema
+      # @raise [ArgumentError] if duplicate setting found in `new_schema`
       def self.check_schema_duplication(new_schema)
         shared_keys = new_schema.keys & schema.keys
 
@@ -27,6 +34,9 @@ module Dry
       end
       private_class_method :check_schema_duplication
 
+      # @param [Pathname] root
+      # @param [#to_s] env
+      # @return [Dry::Configurable::Config]
       def self.load(root, env)
         yaml_path = root.join("config/settings.yml")
         yaml_data = File.exist?(yaml_path) ? YAML.load_file(yaml_path)[env.to_s] : {}
